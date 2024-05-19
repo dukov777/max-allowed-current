@@ -18,7 +18,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/CapacitorTests",
-      // "args": ["--gtest_filter='*TestParallelGroupSingleCapacitorExceedingRange'"],
+      // "args": ["--gtest_filter='*TestSeriesCapacitorXc'"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/",
       "environment": [],
