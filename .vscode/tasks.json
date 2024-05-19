@@ -1,0 +1,64 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "CMake Configure",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"-S",
+				"${workspaceFolder}",
+				"-B",
+				"${workspaceFolder}/build"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "Generates build system files using CMake"
+		},
+		{
+			"label": "CMake Build",
+			"type": "shell",
+			"command": "cmake",
+			"args": [
+				"--build",
+				"${workspaceFolder}/build",
+				"-j",
+				"8",				
+			],
+			"dependsOn": "CMake Configure",
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "Compiles the project using CMake with Make"
+		},
+		{
+			"label": "Prepare for TestRun",
+			"type": "shell",
+			"command": "ctest",
+			"args": [
+				"--rerun-failed",
+				"--output-on-failure",
+				"--test-dir",
+				"${workspaceFolder}/build"
+			],
+			"dependsOn": [
+				"CMake Build"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"detail": "Prepares the testing."
+		},
+        {
+            "label": "Prepare for Debug",
+            "type": "shell",
+            "command": "echo",
+            "args": ["Preparing for debug..."],
+            "dependsOn": ["CMake Build"],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Prepares the build and config for debugging."
+        }
+	]
+}
