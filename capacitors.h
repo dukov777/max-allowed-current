@@ -94,23 +94,39 @@ class ParallelCapacitor : public Capacitor {
 private:
     std::vector<CapacitorInterface*> _capacitors;
 
+private:
+    // static function returning the string name
+    static const std::string _get_name(const std::string& cap_name, const std::vector<CapacitorInterface*>& capacitors) 
+    {
+        if(cap_name.empty())
+        {
+            return "parallel group " 
+                + std::to_string((int)std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                    [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); })) 
+                + "uF/" 
+                + std::to_string((int)(*std::min_element(capacitors.begin(), capacitors.end(),
+                    [](CapacitorInterface* a, CapacitorInterface* b) 
+                    { 
+                        return a->spec().get_v_max() < b->spec().get_v_max(); }))->spec().get_v_max())
+                 + "V";
+        }
+        else
+        {
+            return cap_name;
+        }
+    }
 public:
     ParallelCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "")
-        : Capacitor(0,0,0,0),
-        // : Capacitor(
-        //     std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-        //                     [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); }),
-        //     std::min_element(capacitors.begin(), capacitors.end(),
-        //                      [](Capacitor* a, Capacitor* b) { return a->spec().get_v_max() < b->spec().get_v_max(); })->spec().get_v_max(),
-        //     std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-        //                     [](double sum, Capacitor* cap) { return sum + cap->spec().get_i_max(); }),
-        //     std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-        //                     [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); }),
-        //     cap_name.empty() ? ("parallel group " + std::to_string((int)std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-        //                                                                                  [](double sum, Capacitor cap) { return sum + cap.spec().get_cap_uF(); })) + 
-        //                        "uF/" + std::to_string((int)std::min_element(capacitors.begin(), capacitors.end(),
-        //                                                                      [](Capacitor a, Capacitor b) { return a.spec().get_v_max() < b.spec().get_v_max(); })->spec().get_v_max()) + "V")
-        //              : cap_name),
+        : Capacitor(
+            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); }),
+            (*std::min_element(capacitors.begin(), capacitors.end(),
+                              [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_v_max() < b->spec().get_v_max(); }))->spec().get_v_max(),
+            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_i_max(); }),
+            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); }),
+            _get_name(cap_name, capacitors)),
             _capacitors(capacitors) {}
 
     double xc(double f) const override {
@@ -133,39 +149,48 @@ public:
 // SeriesCapacitor class definition
 class SeriesCapacitor : public Capacitor {
 private:
-    std::vector<Capacitor> _capacitors;
+    std::vector<CapacitorInterface*> _capacitors;
+
+    static std::string _get_name(const std::string& cap_name, const std::vector<CapacitorInterface*>& capacitors) {
+        if (cap_name.empty()) {
+            return "serial group " 
+            + std::to_string((int)(1.0 / std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                    [](double sum, CapacitorInterface* cap) { return sum + 1.0 / cap->spec().get_cap_uF(); }))) 
+            + "uF/" + std::to_string((int)std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                    [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_v_max(); })) 
+            + "V";
+        } else {
+            return cap_name;
+        }
+    }
 
 public:
-    SeriesCapacitor(const std::vector<Capacitor>& capacitors, const std::string& cap_name = "")
+    SeriesCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "")
         : Capacitor(
             1.0 / std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                                  [](double sum, Capacitor cap) { return sum + 1.0 / cap.spec().get_cap_uF(); }),
+                                  [](double sum, CapacitorInterface* cap) { return sum + 1.0 / cap->spec().get_cap_uF(); }),
             std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [](double sum, Capacitor cap) { return sum + cap.spec().get_v_max(); }),
-            std::min_element(capacitors.begin(), capacitors.end(), 
-                             [](Capacitor a, Capacitor b) { return a.spec().get_i_max() < b.spec().get_i_max(); })->spec().get_i_max(),
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_v_max(); }),
+            (*std::min_element(capacitors.begin(), capacitors.end(), 
+                             [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_i_max() < b->spec().get_i_max(); }))->spec().get_i_max(),
             std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [](double sum, Capacitor cap) { return sum + cap.spec().get_power_max(); }),
-            cap_name.empty() ? ("serial group " + std::to_string((int)(1.0 / std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                                                                                              [](double sum, Capacitor cap) { return sum + 1.0 / cap.spec().get_cap_uF(); }))) + 
-                                "uF/" + std::to_string((int)std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                                                                             [](double sum, Capacitor cap) { return sum + cap.spec().get_v_max(); })) + "V")
-                     : cap_name),
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); }),
+            _get_name(cap_name, capacitors)),
             _capacitors(capacitors) {}
 
     double xc(double f) const override {
         return std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
-                               [f](double sum, Capacitor cap) { return sum + cap.xc(f); });
+                               [f](double sum, CapacitorInterface* cap) { return sum + cap->xc(f); });
     }
 
     double voltage(double f, double current) const override {
         return std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
-                               [f, current](double sum, Capacitor cap) { return sum + cap.voltage(f, current); });
+                               [f, current](double sum, CapacitorInterface* cap) { return sum + cap->voltage(f, current); });
     }
 
     double allowed_current(double f) const override {
-        return std::min_element(_capacitors.begin(), _capacitors.end(), 
-                                [f](Capacitor a, Capacitor b) { return a.allowed_current(f) < b.allowed_current(f); })->allowed_current(f);
+        return (*std::min_element(_capacitors.begin(), _capacitors.end(), 
+                                [f](CapacitorInterface* a, CapacitorInterface* b) { return a->allowed_current(f) < b->allowed_current(f); }))->allowed_current(f);
     }
 };
 
