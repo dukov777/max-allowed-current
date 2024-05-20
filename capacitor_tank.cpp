@@ -128,7 +128,86 @@ std::vector<CapacitorSpecification> parse_capacitor_specifications_file(const st
     return capacitor_spec;
 }
 
+TankCalculator::TankCalculator(std::vector<CapacitorSpecification> &specs)
+{
+    capacitors_group1.reserve(5);
+    capacitors_group2.reserve(5);
 
+    for (auto &spec : specs)
+    {
+        stored_specs[spec.name] = std::make_unique<CapacitorSpecification>(spec);
+    }
+}
+
+
+// std::vector<Capacitor> cap_1uF_pool({Capacitor(1, 1000, 500), Capacitor(1, 1000, 500), Capacitor(1, 1000, 500), Capacitor(1, 1000, 500)});
+// std::vector<Capacitor> cap_3_3uF_pool({Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500)});
+
+// std::unordered_map<std::string, std::vector<Capacitor>> stored_caps = {
+//     {"1uF_1000V", cap_1uF_pool},
+//     {"3.3uF_800V", cap_3_3uF_pool}
+// };
+
+void TankCalculator::compose_capacitors_tank(
+    std::vector<std::string> &group1,
+    std::vector<std::string> &group2)
+{
+    for (auto &name : group1)
+    {
+        if(stored_specs.find(name) == stored_specs.end())
+        {
+            std::cerr << "Error: Capacitor " << name << " not found in the specification file." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        capacitors_group1.push_back( Capacitor(
+                stored_specs[name]->capacitance*1e6,
+                stored_specs[name]->voltage,
+                stored_specs[name]->current,
+                stored_specs[name]->power,
+                stored_specs[name]->name));
+
+        caps1.push_back(&capacitors_group1[0]);
+    }
+
+    parallel1 = ParallelCapacitor(caps1, "group1");
+
+    for (auto &name : group2)
+    {
+        capacitors_group2.push_back( Capacitor(
+                stored_specs[name]->capacitance*1e6,
+                stored_specs[name]->voltage,
+                stored_specs[name]->current,
+                stored_specs[name]->power,
+                stored_specs[name]->name));
+
+        caps2.push_back(&capacitors_group2[0]);
+    }
+    parallel2 = ParallelCapacitor(caps2, "group2");
+}
+
+double TankCalculator::calculate_capacitors_tank(float frequency, float current)
+{
+    CapacitorMaxCurrentViolationDecorator current_violation_checker1(&parallel1);
+    CapacitorMaxCurrentViolationDecorator current_violation_checker2(&parallel2);
+
+    std::vector<CapacitorInterface*> serials;
+    serials.push_back(&current_violation_checker1);
+    serials.push_back(&current_violation_checker2);
+
+    SeriesCapacitor serial(serials, "Tank Circuit Example");
+    return serial.current(frequency, current);
+}
+
+double TankCalculator::calculate_allowed_current(float frequency)
+{
+    std::vector<CapacitorInterface*> serials;
+    serials.push_back(&parallel1);
+    serials.push_back(&parallel2);
+
+    SeriesCapacitor serial(serials, "Tank Circuit Example");
+    return serial.allowed_current(frequency);
+}
 
 int _main_(int argc, char **argv)
 {
@@ -148,76 +227,15 @@ int _main_(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    // std::vector<CapacitorSpecification> capacitor_spec = parse_capacitor_specifications(data.capacitor_spec_file);
+    std::vector<CapacitorSpecification> capacitor_spec = parse_capacitor_specifications_file(data.capacitor_spec_file);
 
-    // // Calculate the tank capacitors
-    // TankCalculator tank_calculator(capacitor_spec);
-    // tank_calculator.compose_capacitors_tank(data.group1, data.group2);
-    // tank_calculator.calculate_capacitors_tank(data.f, data.i);
+    // Calculate the tank capacitors
+    TankCalculator tank_calculator(capacitor_spec);
+    tank_calculator.compose_capacitors_tank(data.group1, data.group2);
+    tank_calculator.calculate_capacitors_tank(data.f, data.i);
+    auto allowed_current = tank_calculator.calculate_allowed_current(data.f);
+    std::cout << "Allowed current: " << allowed_current << std::endl;
 
     return 0;
 }
 
-class TankCalculator
-{
-    std::unordered_map<std::string, std::unique_ptr<CapacitorSpecification>> stored_specs;
-    // std::unique_ptr<MonitorDecorator> serial_tank;
-public:
-    TankCalculator(std::vector<CapacitorSpecification> &specs);
-    void compose_capacitors_tank(std::vector<std::string> &group1, std::vector<std::string> &group2);
-    // void calculate_capacitors_tank(float frequency, float current);
-};
-
-TankCalculator::TankCalculator(std::vector<CapacitorSpecification> &specs)
-{
-    for (auto &spec : specs)
-    {
-        stored_specs[spec.name] = std::make_unique<CapacitorSpecification>(spec);
-    }
-}
-
-
-std::vector<Capacitor> cap_1uF_pool({Capacitor(1, 1000, 500), Capacitor(1, 1000, 500), Capacitor(1, 1000, 500), Capacitor(1, 1000, 500)});
-std::vector<Capacitor> cap_3_3uF_pool({Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500)});
-
-std::unordered_map<std::string, std::vector<Capacitor>> stored_caps = {
-    {"1uF_1000V", cap_1uF_pool},
-    {"3.3uF_800V", cap_3_3uF_pool}
-};
-
-void TankCalculator::compose_capacitors_tank(
-    std::vector<std::string> &group1,
-    std::vector<std::string> &group2)
-{
-    std::vector<CapacitorInterface*> caps1;
-    std::vector<CapacitorInterface*> caps2;
-
-    for (auto &name : group1)
-    {
-        caps1.push_back(&stored_caps[name].back());
-        stored_caps[name].pop_back();
-    }
-
-    for (auto &name : group2)
-    {
-        caps2.push_back(&stored_caps[name].back());
-        stored_caps[name].pop_back();
-
-    }
-    ParallelCapacitor parallel1(caps1, "group1");
-    ParallelCapacitor parallel2(caps2, "group1");
-
-    SeriesCapacitor serial({&parallel1, &parallel2});
-
-    // std::vector<std::unique_ptr<CapacitorInterface>> serials;
-    // // serials.push_back(std::make_unique<CurrentMonitorDecorator>(std::make_unique<SerialCapacitors>("Serial 1", std::move(caps1))));
-    // serials.push_back(std::make_unique<MonitorDecorator>(std::make_unique<ParallelCapacitors>("group1", std::move(caps1))));
-    // serials.push_back(std::make_unique<MonitorDecorator>(std::make_unique<ParallelCapacitors>("group2", std::move(caps2))));
-
-    // serial_tank = std::make_unique<MonitorDecorator>(std::make_unique<SerialCapacitors>("Tank Circuit Example", std::move(serials)));
-}
-
-// void TankCalculator::calculate_capacitors_tank(float frequency, float current)
-// {
-//     serial_tank->calculate(frequency, current);
-// }

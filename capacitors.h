@@ -7,11 +7,10 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
-#include <cmath>
+#include <iostream>
 
-#include <cmath>
+// #include <cmath>
 #include <string>
-#include <sstream>
 #include <iomanip>
 
 // CapacitorSpec class definition
@@ -24,6 +23,7 @@ private:
     double power_max;
 
 public:
+    CapacitorSpec() : cap_uF(0.0), cap_F(0.0), i_max(0.0), v_max(0.0), power_max(0.0) {}
     CapacitorSpec(double cap_uF, double v_max, double i_max, double power_max)
         : cap_uF(cap_uF), cap_F(cap_uF * 1e-6), i_max(i_max), v_max(v_max), power_max(power_max) {}
 
@@ -54,7 +54,9 @@ private:
     std::string _cap_name;
 
 public:
-    Capacitor(double cap_uF, double vmax, double imax, double power_max = 0.0, std::string cap_name = "")
+    Capacitor() : _spec(0, 0, 0, 0), _cap_name(){}
+
+    Capacitor(double cap_uF, double vmax, double imax, double power_max, std::string cap_name = "")
         : _spec(cap_uF, vmax, imax, power_max) {
         if (cap_name.empty()) {
             std::ostringstream oss;
@@ -66,7 +68,7 @@ public:
     }
 
     virtual double xc(double f) const {
-        return 1 / (2 * M_PI * f * _spec.get_cap_F());
+        return 1 / (2 * M_PI * f * spec().get_cap_F());
     }
 
     virtual double current(double f, double voltage) const {
@@ -92,44 +94,78 @@ public:
 };
 
 // ParallelCapacitor class definition
-class ParallelCapacitor : public Capacitor {
-private:
+class GroupCapacitorBase : public CapacitorInterface 
+{
+protected:
     std::vector<CapacitorInterface*> _capacitors;
+    CapacitorSpec _spec;
+    std::string _cap_name;
 
-private:
+protected:
+    GroupCapacitorBase(){}
+
+    GroupCapacitorBase(const std::vector<CapacitorInterface*>& capacitors) 
+        : _capacitors(capacitors) {}
+
     // static function returning the string name
-    static const std::string _get_name(const std::string& cap_name, const std::vector<CapacitorInterface*>& capacitors) 
+    static const std::string _get_name(const std::string& cap_name, const CapacitorSpec& cap_spec, const std::string& type = "group") 
     {
         if(cap_name.empty())
         {
-            return "parallel group " 
-                + std::to_string((int)std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                    [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); })) 
-                + "uF/" 
-                + std::to_string((int)(*std::min_element(capacitors.begin(), capacitors.end(),
-                    [](CapacitorInterface* a, CapacitorInterface* b) 
-                    { 
-                        return a->spec().get_v_max() < b->spec().get_v_max(); }))->spec().get_v_max())
-                 + "V";
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(0) << type
+                << cap_spec.get_cap_uF() << "uF/"
+                << cap_spec.get_v_max() << "V";
+            return oss.str();
         }
         else
         {
             return cap_name;
         }
     }
+
 public:
-    ParallelCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "")
-        : Capacitor(
-            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); }),
-            (*std::min_element(capacitors.begin(), capacitors.end(),
-                              [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_v_max() < b->spec().get_v_max(); }))->spec().get_v_max(),
-            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_i_max(); }),
-            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); }),
-            _get_name(cap_name, capacitors)),
-            _capacitors(capacitors) {}
+    double current(double f, double voltage) const override {
+        return voltage / xc(f);
+    }
+
+    double voltage(double f, double current) const override {
+        return current * xc(f);
+    }
+
+    const CapacitorSpec& spec() const override {
+        return _spec;
+    }
+
+    std::string name() const override {
+        return _cap_name;
+    }
+
+};
+
+// ParallelCapacitor class definition
+class ParallelCapacitor : public GroupCapacitorBase
+{
+public:
+    ParallelCapacitor()
+    {
+    }
+
+    ParallelCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "") 
+        : GroupCapacitorBase(capacitors) 
+    {
+        double cap_uF = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); });
+        double vmax = (*std::min_element(capacitors.begin(), capacitors.end(),
+                            [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_v_max() < b->spec().get_v_max(); }))->spec().get_v_max();
+        double imax = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_i_max(); });
+        double power_max = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); });
+
+        _spec = CapacitorSpec(cap_uF, vmax, imax, power_max);
+        _cap_name = _get_name(cap_name, _spec, "parallel group");
+    }
 
     double xc(double f) const override {
         double reciprocal = std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
@@ -143,79 +179,78 @@ public:
     }
 
     double allowed_current(double f) const override {
-        return std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
-                               [f](double sum, CapacitorInterface* cap) { return sum + cap->allowed_current(f); });
+        return spec().get_v_max() / xc(f);
+    }
+
+    double voltage(double f, double current) const override {
+        // traverse all capacitors and call the voltage function. 
+        // The result is not important here but the side effect is important.
+        for(auto cap : _capacitors)
+        {
+            cap->voltage(f, 0.0);
+        }
+        return current * xc(f);
     }
 };
 
 // SeriesCapacitor class definition
-class SeriesCapacitor : public Capacitor {
-private:
-    std::vector<CapacitorInterface*> _capacitors;
-
-    static std::string _get_name(const std::string& cap_name, const std::vector<CapacitorInterface*>& capacitors) {
-        if (cap_name.empty()) {
-            return "serial group " 
-            + std::to_string((int)(1.0 / std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                    [](double sum, CapacitorInterface* cap) { return sum + 1.0 / cap->spec().get_cap_uF(); }))) 
-            + "uF/" + std::to_string((int)std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                    [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_v_max(); })) 
-            + "V";
-        } else {
-            return cap_name;
-        }
-    }
-
+class SeriesCapacitor : public GroupCapacitorBase {
 public:
     SeriesCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "")
-        : Capacitor(
-            1.0 / std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                                  [](double sum, CapacitorInterface* cap) { return sum + 1.0 / cap->spec().get_cap_uF(); }),
-            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_v_max(); }),
-            (*std::min_element(capacitors.begin(), capacitors.end(), 
-                             [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_i_max() < b->spec().get_i_max(); }))->spec().get_i_max(),
-            std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); }),
-            _get_name(cap_name, capacitors)),
-            _capacitors(capacitors) {}
+        : GroupCapacitorBase(capacitors) 
+    {
+        double cap_uF = 1.0 / std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + 1.0 / cap->spec().get_cap_uF(); });
+        double vmax = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_v_max(); });
+        double imax = (*std::min_element(capacitors.begin(), capacitors.end(), 
+                            [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_i_max() < b->spec().get_i_max(); }))->spec().get_i_max();
+        double power_max = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                            [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); });
+
+        _spec = CapacitorSpec(cap_uF, vmax, imax, power_max);
+        _cap_name = _get_name(cap_name, _spec, "serial group");
+    }
 
     double xc(double f) const override {
         return std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
                                [f](double sum, CapacitorInterface* cap) { return sum + cap->xc(f); });
     }
 
-    double voltage(double f, double current) const override {
-        return std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
-                               [f, current](double sum, CapacitorInterface* cap) { return sum + cap->voltage(f, current); });
+    double current(double f, double voltage) const override {
+        auto current = voltage / xc(f);
+        
+        // traverse all capacitors and call the current function. The result is not important here but the side effect is important.
+        for(auto cap : _capacitors)
+        {
+            auto voltage_per_cap = cap->xc(f) * current;
+            cap->current(f, voltage_per_cap);
+        }
+        return current;
     }
 
     double allowed_current(double f) const override {
         return (*std::min_element(_capacitors.begin(), _capacitors.end(), 
                                 [f](CapacitorInterface* a, CapacitorInterface* b) { return a->allowed_current(f) < b->allowed_current(f); }))->allowed_current(f);
     }
+
+    double voltage(double f, double current) const override {
+        return std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
+                               [f, current](double sum, CapacitorInterface* cap) { return sum + cap->voltage(f, current); });
+    }
 };
 
+
 // Decorator base class for current violation
-class CapacitorMaxCurrentViolationDecoratorBase : public Capacitor {
+class CapacitorMaxCurrentViolationDecoratorBase : public CapacitorInterface {
 protected:
     CapacitorInterface* cap;
 
 public:
-    CapacitorMaxCurrentViolationDecoratorBase(CapacitorInterface* cap) : 
-            Capacitor(cap->spec().get_cap_uF(), 
-                cap->spec().get_v_max(), 
-                cap->spec().get_i_max(), 
-                cap->spec().get_power_max(), 
-                cap->name()),
-            cap(cap){}
+    CapacitorMaxCurrentViolationDecoratorBase(CapacitorInterface* cap) : cap(cap){}
 
     virtual double xc(double f) const override {
         return cap->xc(f);
-    }
-
-    virtual double voltage(double f, double current) const override {
-        return cap->voltage(f, current);
     }
 
     virtual std::string name() const override {
@@ -225,7 +260,12 @@ public:
     virtual const CapacitorSpec& spec() const override {
         return cap->spec();
     }
+
+    virtual double allowed_current(double f) const override {
+        return cap->allowed_current(f);
+    }
 };
+
 
 // Decorator for max current violation
 class CapacitorMaxCurrentViolationDecorator : public CapacitorMaxCurrentViolationDecoratorBase {
@@ -235,25 +275,69 @@ public:
 
     virtual double current(double f, double voltage) const override {
         double spec_max_current = cap->spec().get_i_max();
-        double max_current = cap->current(f, voltage);
-        if (max_current > spec_max_current) {
-            throw std::runtime_error("Current " + std::to_string(max_current) + " exceeds maximum current " + std::to_string(spec_max_current) + " of " + cap->name());
+        double current = cap->current(f, voltage);
+        if (current > spec_max_current) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(0) << 
+                "Current " << current <<
+                " exceeds maximum current " << spec_max_current << 
+                " of " + cap->name();
+            #ifdef LOG_CONSOLE
+                std::cout << oss.str() << std::endl;
+            #else
+                throw std::runtime_error(oss.str());
+            #endif
         }
-        return max_current;
+
+        double spec_max_power = cap->spec().get_power_max();
+        if (current * voltage > spec_max_power) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(0) << 
+                "Power " << current * voltage << 
+                " exceeds maximum power " << spec_max_power <<
+                " of " << cap->name();
+            #ifdef LOG_CONSOLE
+                std::cout << oss.str() << std::endl;
+            #else
+                throw std::runtime_error(oss.str());
+            #endif
+        }
+
+        return current;
     }
-};
 
-// Decorator for ParallelCapacitor validating the maximum current
-class ParallelCapacitorMaxCurrentViolationDecorator : public CapacitorMaxCurrentViolationDecorator {
-public:
-    ParallelCapacitorMaxCurrentViolationDecorator(Capacitor* cap) : CapacitorMaxCurrentViolationDecorator(cap) {}
-
-    double current(double f, double voltage) const override {
-        double spec_max_current = cap->spec().get_i_max();
-        double max_current = CapacitorMaxCurrentViolationDecorator::current(f, voltage);
-        if (max_current > spec_max_current) {
-            throw std::runtime_error("Current " + std::to_string(max_current) + " exceeds maximum current " + std::to_string(spec_max_current) + " of " + cap->name());
+    virtual double voltage(double f, double current) const override {
+        
+        double spec_max_voltage = cap->spec().get_v_max();
+        double voltage = cap->voltage(f, current);
+        
+        if (voltage > spec_max_voltage) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(0) << 
+                "Voltage " << voltage << 
+                " exceeds maximum voltage " << spec_max_voltage << 
+                " of " << cap->name();
+            #ifdef LOG_CONSOLE
+                std::cout << oss.str() << std::endl;
+            #else
+                throw std::runtime_error(oss.str());
+            #endif
         }
-        return max_current;
+
+        double spec_max_power = cap->spec().get_power_max();
+        if (current * voltage > spec_max_power) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(0) << 
+                "Power " << current * voltage << 
+                " exceeds maximum power " << spec_max_power << 
+                " of " << cap->name();
+            
+            #ifdef LOG_CONSOLE
+                std::cout << oss.str() << std::endl;
+            #else
+                throw std::runtime_error(oss.str());
+            #endif
+        }
+        return voltage;
     }
 };

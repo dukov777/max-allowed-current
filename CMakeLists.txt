@@ -37,19 +37,38 @@ set(SOURCES
     test_capacitor_tank.cpp
 )
 
+set(SOURCES2
+    capacitors.cpp  # Assuming your class implementations are in this file
+    capacitor_tank.cpp
+    main.cpp
+)
+
 include_directories(${CMAKE_SOURCE_DIR}/argparse/include/)
 include_directories(${CMAKE_SOURCE_DIR}/json/include/)
 
+# Add -fsanitize=address flag
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+# set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
+# set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
+
 enable_testing()
+
+add_executable(
+  calculator
+  ${SOURCES2}
+)
 
 add_executable(
   CapacitorTests
   ${SOURCES}
 )
+
 target_link_libraries(
   CapacitorTests
   GTest::gtest_main
 )
+
+target_compile_options(calculator PRIVATE -DLOG_CONSOLE)
 
 include(GoogleTest)
 

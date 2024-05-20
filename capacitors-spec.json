@@ -1,0 +1,37 @@
+    [
+    {
+        "name": "1uF_1000V",
+        "capacitance": 1e-6,
+        "voltage": 1000,
+        "current": 500,
+        "power": 500e+3
+    },
+    {
+        "name": "3.3uF_800V",
+        "capacitance": 3.3e-6,
+        "voltage": 800,
+        "current": 600,
+        "power": 500e+3
+    },
+    {
+        "name": "6uF_750V",
+        "capacitance": 6e-6,
+        "voltage": 750,
+        "current": 750,
+        "power": 500e+3
+    },
+    {
+        "name": "10uF_600V",
+        "capacitance": 10e-6,
+        "voltage": 600,
+        "current": 800,
+        "power": 500e+3
+    },
+    {
+        "name": "23uF_500V",
+        "capacitance": 23e-6,
+        "voltage": 500,
+        "current": 1000,
+        "power": 500e+3
+    }
+    ]

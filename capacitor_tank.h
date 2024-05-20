@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
+#include "capacitors.h"
 
 using json = nlohmann::json;
 
@@ -28,3 +29,25 @@ struct CapacitorSpecification
 
 ProgramData get_commnad_line_params(int argc, char **argv);
 std::vector<CapacitorSpecification> parse_capacitor_specifications(json& json_data);
+
+class TankCalculator
+{
+    ParallelCapacitor parallel1;
+    ParallelCapacitor parallel2;
+
+    std::vector<CapacitorInterface*> caps1;
+    std::vector<CapacitorInterface*> caps2;
+
+    std::vector<Capacitor> capacitors_group1;
+    std::vector<Capacitor> capacitors_group2;
+
+    std::unordered_map<std::string, std::unique_ptr<CapacitorSpecification>> stored_specs;
+    std::unordered_map<std::string, std::vector<Capacitor>> stored_caps;
+    
+public:
+    TankCalculator(std::vector<CapacitorSpecification> &specs);
+    void compose_capacitors_tank(std::vector<std::string> &group1, std::vector<std::string> &group2);
+    double calculate_capacitors_tank(float frequency, float current);
+    double calculate_allowed_current(float frequency);
+};
+
