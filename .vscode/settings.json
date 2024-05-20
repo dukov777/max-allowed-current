@@ -80,6 +80,11 @@
         "semaphore": "cpp",
         "stop_token": "cpp",
         "thread": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "codecvt": "cpp",
+        "csignal": "cpp",
+        "regex": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp"
     }
 }
