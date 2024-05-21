@@ -190,8 +190,8 @@ void TankCalculator::compose_capacitors_tank(
 
 double TankCalculator::calculate_capacitors_tank(float frequency, float current)
 {
-    CapacitorMaxCurrentViolationDecorator current_violation_checker1(&parallel1);
-    CapacitorMaxCurrentViolationDecorator current_violation_checker2(&parallel2);
+    CapacitorMaxViolationCheckDecorator current_violation_checker1(&parallel1);
+    CapacitorMaxViolationCheckDecorator current_violation_checker2(&parallel2);
 
     std::vector<CapacitorInterface*> serials;
     serials.push_back(&current_violation_checker1);

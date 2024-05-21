@@ -227,12 +227,12 @@ public:
 
 
 // Decorator base class for current violation
-class CapacitorMaxCurrentViolationDecoratorBase : public CapacitorInterface {
+class CapacitorMaxViolationCheckDecoratorBase : public CapacitorInterface {
 protected:
     CapacitorInterface* cap;
 
 public:
-    CapacitorMaxCurrentViolationDecoratorBase(CapacitorInterface* cap) : cap(cap){}
+    CapacitorMaxViolationCheckDecoratorBase(CapacitorInterface* cap) : cap(cap){}
 
     virtual double xc(double f) const override {
         return cap->xc(f);
@@ -253,10 +253,10 @@ public:
 
 
 // Decorator for max current violation
-class CapacitorMaxCurrentViolationDecorator : public CapacitorMaxCurrentViolationDecoratorBase {
+class CapacitorMaxViolationCheckDecorator : public CapacitorMaxViolationCheckDecoratorBase {
 public:
-    CapacitorMaxCurrentViolationDecorator(CapacitorInterface* cap) 
-        : CapacitorMaxCurrentViolationDecoratorBase(cap) {}
+    CapacitorMaxViolationCheckDecorator(CapacitorInterface* cap) 
+        : CapacitorMaxViolationCheckDecoratorBase(cap) {}
 
     virtual double current(double f, double voltage) const override {
         double spec_max_current = cap->spec().get_i_max();

@@ -82,7 +82,7 @@ TEST(CapacitorTest, TestParallelCapacitorDecoratorCurrent) {
     Capacitor cap1(1, 1000, 500, 500e3);
     Capacitor cap2(1, 1000, 500, 500e3);
     ParallelCapacitor parallel({&cap1, &cap2});
-    CapacitorMaxCurrentViolationDecorator decoratedParallel(&parallel);
+    CapacitorMaxViolationCheckDecorator decoratedParallel(&parallel);
     ASSERT_NEAR(decoratedParallel.current(1, 1000), 0.012566, 1e-4);
 }
 
@@ -91,7 +91,7 @@ TEST(CapacitorTest, TestParallelCapacitorDecoratorCurrentExceedingRange) {
     Capacitor cap1(10, 1000, 500, 500e3);
     Capacitor cap2(20, 800, 600, 500e3);
     ParallelCapacitor parallel({&cap1, &cap2});
-    CapacitorMaxCurrentViolationDecorator decoratedParallel(&parallel);
+    CapacitorMaxViolationCheckDecorator decoratedParallel(&parallel);
     ASSERT_THROW(decoratedParallel.current(f, 1000), std::runtime_error);
 }
 
@@ -99,7 +99,7 @@ TEST(CapacitorTest, TestCapacitorDecoratorExceedingRange)
 {
 
     Capacitor cap(10, 1000, 500, 500e3);
-    CapacitorMaxCurrentViolationDecorator decoratedCap(&cap);
+    CapacitorMaxViolationCheckDecorator decoratedCap(&cap);
 
     double f = 50000;
     ASSERT_THROW(decoratedCap.current(f, 1000), std::runtime_error);
@@ -110,8 +110,8 @@ TEST(CapacitorTest, TestCapacitorDecoratorExceedingRange)
 
 TEST(CapacitorTest, TestParallelGroupSingleCapacitorExceedingRange) {
     double f = 500000;
-    CapacitorMaxCurrentViolationDecorator cap1(new Capacitor(10, 1000, 500, 500e3));
-    CapacitorMaxCurrentViolationDecorator cap2(new Capacitor(20, 800, 600, 500e3));
+    CapacitorMaxViolationCheckDecorator cap1(new Capacitor(10, 1000, 500, 500e3));
+    CapacitorMaxViolationCheckDecorator cap2(new Capacitor(20, 800, 600, 500e3));
     ParallelCapacitor parallel({&cap1, &cap2});
     ASSERT_THROW(parallel.current(f, 1000), std::runtime_error);
 }
