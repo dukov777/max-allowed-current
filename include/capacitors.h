@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <string>
 
 // CapacitorSpec class definition
@@ -75,6 +76,7 @@ class ParallelCapacitor : public GroupCapacitorBase
 public:
     ParallelCapacitor() = default;
     ParallelCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "");
+    // ParallelCapacitor(const std::array<CapacitorInterface*, 5>& capacitors, const std::string& cap_name = ""){};
     double xc(double f) const override;
 
     double current(double f, double voltage) const override;
