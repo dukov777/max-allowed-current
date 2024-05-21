@@ -30,15 +30,15 @@ FetchContent_MakeAvailable(googletest)
 
 # Add the source files
 set(SOURCES
-    capacitors.cpp  # Assuming your class implementations are in this file
-    capacitor_tank.cpp
-    capacitor_violation_check.cpp
+    src/capacitors.cpp  # Assuming your class implementations are in this file
+    src/capacitor_tank.cpp
+    src/capacitor_violation_check.cpp
 )
 
 set(TEST_SOURCES
   ${SOURCES}
-  tests.cpp       # The file containing your test cases
-  test_capacitor_tank.cpp
+  tests/tests.cpp       # The file containing your test cases
+  tests/test_capacitor_tank.cpp
 )
 
 set(APP_SOURCES
@@ -46,6 +46,7 @@ set(APP_SOURCES
   main.cpp
 )
 
+include_directories(${CMAKE_SOURCE_DIR}/include/)
 include_directories(${CMAKE_SOURCE_DIR}/argparse/include/)
 include_directories(${CMAKE_SOURCE_DIR}/json/include/)
 
