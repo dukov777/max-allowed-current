@@ -48,25 +48,12 @@ public:
 };
 
 // Capacitor class definition
-class Capacitor : public CapacitorInterface {
-private:
+class CapacitorBase : public CapacitorInterface {
+protected:
     CapacitorSpec _spec;
     std::string _cap_name;
 
 public:
-    Capacitor() : _spec(0, 0, 0, 0), _cap_name(){}
-
-    Capacitor(double cap_uF, double vmax, double imax, double power_max, std::string cap_name = "")
-        : _spec(cap_uF, vmax, imax, power_max) {
-        if (cap_name.empty()) {
-            std::ostringstream oss;
-            oss << std::fixed << std::setprecision(0) << cap_uF << "uF/" << vmax << "V";
-            _cap_name = oss.str();
-        } else {
-            _cap_name = cap_name;
-        }
-    }
-
     virtual double xc(double f) const {
         return 1 / (2 * M_PI * f * spec().get_cap_F());
     }
@@ -93,16 +80,32 @@ public:
     }
 };
 
+// Capacitor class definition
+class Capacitor : public CapacitorBase {
+public:
+    Capacitor() = default;
+
+    Capacitor(double cap_uF, double vmax, double imax, double power_max, std::string cap_name = "")
+    {
+        _spec = CapacitorSpec(cap_uF, vmax, imax, power_max);
+        if (cap_name.empty()) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(0) << cap_uF << "uF/" << vmax << "V";
+            _cap_name = oss.str();
+        } else {
+            _cap_name = cap_name;
+        }
+    }
+};
+
 // ParallelCapacitor class definition
-class GroupCapacitorBase : public CapacitorInterface 
+class GroupCapacitorBase : public CapacitorBase 
 {
 protected:
     std::vector<CapacitorInterface*> _capacitors;
-    CapacitorSpec _spec;
-    std::string _cap_name;
 
 protected:
-    GroupCapacitorBase(){}
+    GroupCapacitorBase() = default;
 
     GroupCapacitorBase(const std::vector<CapacitorInterface*>& capacitors) 
         : _capacitors(capacitors) {}
@@ -123,24 +126,6 @@ protected:
             return cap_name;
         }
     }
-
-public:
-    double current(double f, double voltage) const override {
-        return voltage / xc(f);
-    }
-
-    double voltage(double f, double current) const override {
-        return current * xc(f);
-    }
-
-    const CapacitorSpec& spec() const override {
-        return _spec;
-    }
-
-    std::string name() const override {
-        return _cap_name;
-    }
-
 };
 
 // ParallelCapacitor class definition
@@ -152,7 +137,7 @@ public:
     }
 
     ParallelCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "") 
-        : GroupCapacitorBase(capacitors) 
+        : GroupCapacitorBase(capacitors)
     {
         double cap_uF = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
                             [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); });

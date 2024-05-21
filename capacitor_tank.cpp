@@ -139,15 +139,6 @@ TankCalculator::TankCalculator(std::vector<CapacitorSpecification> &specs)
     }
 }
 
-
-// std::vector<Capacitor> cap_1uF_pool({Capacitor(1, 1000, 500), Capacitor(1, 1000, 500), Capacitor(1, 1000, 500), Capacitor(1, 1000, 500)});
-// std::vector<Capacitor> cap_3_3uF_pool({Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500), Capacitor(3.3, 800, 500)});
-
-// std::unordered_map<std::string, std::vector<Capacitor>> stored_caps = {
-//     {"1uF_1000V", cap_1uF_pool},
-//     {"3.3uF_800V", cap_3_3uF_pool}
-// };
-
 void TankCalculator::compose_capacitors_tank(
     std::vector<std::string> &group1,
     std::vector<std::string> &group2)
@@ -160,12 +151,14 @@ void TankCalculator::compose_capacitors_tank(
             exit(EXIT_FAILURE);
         }
 
-        capacitors_group1.push_back( Capacitor(
+        auto cap = Capacitor(
                 stored_specs[name]->capacitance*1e6,
                 stored_specs[name]->voltage,
                 stored_specs[name]->current,
                 stored_specs[name]->power,
-                stored_specs[name]->name));
+                stored_specs[name]->name);
+        
+        capacitors_group1.push_back(cap);
 
         caps1.push_back(&capacitors_group1[0]);
     }
@@ -174,15 +167,24 @@ void TankCalculator::compose_capacitors_tank(
 
     for (auto &name : group2)
     {
-        capacitors_group2.push_back( Capacitor(
+        if(stored_specs.find(name) == stored_specs.end())
+        {
+            std::cerr << "Error: Capacitor " << name << " not found in the specification file." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        auto cap = Capacitor(
                 stored_specs[name]->capacitance*1e6,
                 stored_specs[name]->voltage,
                 stored_specs[name]->current,
                 stored_specs[name]->power,
-                stored_specs[name]->name));
+                stored_specs[name]->name);
+        
+        capacitors_group2.push_back(cap);
 
         caps2.push_back(&capacitors_group2[0]);
     }
+    
     parallel2 = ParallelCapacitor(caps2, "group2");
 }
 

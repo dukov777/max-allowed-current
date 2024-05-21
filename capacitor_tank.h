@@ -34,15 +34,16 @@ class TankCalculator
 {
     ParallelCapacitor parallel1;
     ParallelCapacitor parallel2;
-
+    
+    // Pointers are initialize during composition with the value of coresponding capacitors in parallel1 and parallel2. 
     std::vector<CapacitorInterface*> caps1;
     std::vector<CapacitorInterface*> caps2;
 
+    // Pool of capacitor objects, created during Contrutor and initialized during composition.
     std::vector<Capacitor> capacitors_group1;
     std::vector<Capacitor> capacitors_group2;
 
     std::unordered_map<std::string, std::unique_ptr<CapacitorSpecification>> stored_specs;
-    std::unordered_map<std::string, std::vector<Capacitor>> stored_caps;
     
 public:
     TankCalculator(std::vector<CapacitorSpecification> &specs);
