@@ -71,10 +71,9 @@ protected:
 // ParallelCapacitor class definition
 class ParallelCapacitor : public GroupCapacitorBase
 {
-    std::array<CapacitorInterface*, 5> _capacitors;
+    std::array<CapacitorInterface*, 5>* _capacitors;
 public:
-    ParallelCapacitor() = default;
-    ParallelCapacitor(const std::array<CapacitorInterface*, 5>& capacitors, const std::string& cap_name = "");
+    ParallelCapacitor(std::array<CapacitorInterface*, 5>* capacitors, const std::string& cap_name = "");
     double xc(double f) const override;
 
     double current(double f, double voltage) const override;
@@ -89,9 +88,9 @@ public:
 
 // SeriesCapacitor class definition
 class SeriesCapacitor : public GroupCapacitorBase {
-    std::array<CapacitorInterface*, 2> _capacitors;
+    const std::array<CapacitorInterface*, 2>* _capacitors;
 public:
-    SeriesCapacitor(const std::array<CapacitorInterface*, 2>& capacitors, const std::string& cap_name = "");
+    SeriesCapacitor(const std::array<CapacitorInterface*, 2>* capacitors, const std::string& cap_name = "");
 
     double xc(double f) const override;
 
