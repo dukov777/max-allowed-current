@@ -33,6 +33,7 @@ set(SOURCES
     src/capacitors.cpp  # Assuming your class implementations are in this file
     src/capacitor_tank.cpp
     src/capacitor_violation_check.cpp
+    src/capacitor_dump_value.cpp
 )
 
 set(TEST_SOURCES
@@ -58,7 +59,7 @@ include_directories(${CMAKE_SOURCE_DIR}/json/include/)
 enable_testing()
 
 add_executable(
-  calculator
+  calculate-tank-caps
   ${APP_SOURCES}
 )
 
@@ -72,7 +73,7 @@ target_link_libraries(
   GTest::gtest_main
 )
 
-target_compile_options(calculator PRIVATE -DLOG_CONSOLE)
+target_compile_options(calculate-tank-caps PRIVATE -DLOG_CONSOLE)
 
 include(GoogleTest)
 

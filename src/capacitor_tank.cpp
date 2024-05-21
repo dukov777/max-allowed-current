@@ -9,6 +9,7 @@
 #include "capacitors.h"
 #include "capacitor_tank.h"
 #include "capacitor_violation_check.h"
+#include "capacitor_dump_value.h"
 
 
 using json = nlohmann::json;
@@ -161,10 +162,10 @@ void TankCalculator::compose_capacitors_tank(
         
         capacitors_group1.push_back(cap);
 
-        caps1.push_back(&capacitors_group1[0]);
+        caps1.push_back(new CapacitoDumpValueDecorator(&capacitors_group1[0]));
     }
 
-    parallel1 = ParallelCapacitor(caps1, "group1");
+    parallel1 = ParallelCapacitor(caps1, "parallel1");
 
     for (auto &name : group2)
     {
@@ -183,23 +184,27 @@ void TankCalculator::compose_capacitors_tank(
         
         capacitors_group2.push_back(cap);
 
-        caps2.push_back(&capacitors_group2[0]);
+        caps2.push_back(new CapacitoDumpValueDecorator(&capacitors_group2[0]));
     }
     
-    parallel2 = ParallelCapacitor(caps2, "group2");
+    parallel2 = ParallelCapacitor(caps2, "parallel2");
 }
 
 double TankCalculator::calculate_capacitors_tank(float frequency, float current)
 {
-    CapacitorMaxViolationCheckDecorator current_violation_checker1(&parallel1);
-    CapacitorMaxViolationCheckDecorator current_violation_checker2(&parallel2);
+    CapacitoDumpValueDecorator dump1(&parallel1);
+    CapacitoDumpValueDecorator dump2(&parallel2);
+
+    CapacitorMaxViolationCheckDecorator current_violation_checker1(&dump1);
+    CapacitorMaxViolationCheckDecorator current_violation_checker2(&dump2);
 
     std::vector<CapacitorInterface*> serials;
     serials.push_back(&current_violation_checker1);
     serials.push_back(&current_violation_checker2);
 
-    SeriesCapacitor serial(serials, "Tank Circuit Example");
-    return serial.current(frequency, current);
+    SeriesCapacitor serial(serials, "serial");
+    CapacitoDumpValueDecorator dump3(&serial);
+    return dump3.current(frequency, current);
 }
 
 double TankCalculator::calculate_allowed_current(float frequency)
@@ -208,8 +213,21 @@ double TankCalculator::calculate_allowed_current(float frequency)
     serials.push_back(&parallel1);
     serials.push_back(&parallel2);
 
-    SeriesCapacitor serial(serials, "Tank Circuit Example");
+    SeriesCapacitor serial(serials, "serial");
     return serial.allowed_current(frequency);
+}
+
+TankCalculator::~TankCalculator()
+{
+    for (auto &cap : caps1)
+    {
+        delete cap;
+    }
+
+    for (auto &cap : caps2)
+    {
+        delete cap;
+    }
 }
 
 int _main_(int argc, char **argv)

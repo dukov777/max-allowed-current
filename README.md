@@ -35,4 +35,19 @@ This decision is made to keep the family of Capacitor classes clean and with a s
 ```
 4. Run the app
 
-   `./calculate-tank-caps -i 10 -f 60 -group1 3uF_800V -group2 1uF_1000V 3uF_800V -spec ../capacitors-spec.json` 
+   `./calculate-tank-caps -i 100000 -f 10000 -group1 23uF_500V 1uF_1000V  -group2 1uF_1000V -spec ../capacitors-spec.json` 
+
+the result is:
+```bash
+Capacitor: 23uF_500V, Current: 3075, Voltage: 2128, Power: 6542022
+Capacitor: 23uF_500V, Current: 3075, Voltage: 2128, Power: 6542022
+Capacitor: parallel1, Current: 6150, Voltage: 2128, Power: 13084043
+Warning: Overcurrent condition on parallel1. The current is 6150A, which exceeds the maximum current of 2000A!
+Warning: Overpower condition on parallel1. The power is 13084043W, which exceeds the maximum power of 1000000W!
+Capacitor: 1uF_1000V, Current: 6150, Voltage: 97872, Power: 601866007
+Capacitor: parallel2, Current: 6150, Voltage: 97872, Power: 601866007
+Warning: Overcurrent condition on parallel2. The current is 6150A, which exceeds the maximum current of 500A!
+Warning: Overpower condition on parallel2. The power is 601866007W, which exceeds the maximum power of 500000W!
+Capacitor: serial, Current: 6150, Voltage: 100000, Power: 614950050
+Allowed current: 62.8319
+```

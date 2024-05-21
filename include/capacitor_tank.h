@@ -50,5 +50,6 @@ public:
     void compose_capacitors_tank(std::vector<std::string> &group1, std::vector<std::string> &group2);
     double calculate_capacitors_tank(float frequency, float current);
     double calculate_allowed_current(float frequency);
+    ~TankCalculator();
 };
 
