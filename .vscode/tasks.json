@@ -28,7 +28,10 @@
 			"dependsOn": "CMake Configure",
 			"group": "build",
 			"problemMatcher": [],
-			"detail": "Compiles the project using CMake with Make"
+			"detail": "Compiles the project using CMake with Make",
+			"presentation": {
+                "clear": true                        // <-- this line
+            },
 		},
 		{
 			"label": "Prepare for TestRun",
