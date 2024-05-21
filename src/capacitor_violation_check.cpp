@@ -42,9 +42,9 @@ double CapacitorMaxViolationCheckDecorator::current(double f, double voltage) co
     if (current > spec_max_current) {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(0) << 
-            "Current " << current <<
-            " exceeds maximum current " << spec_max_current << 
-            " of " + cap->name();
+            "Warning: Overcurrent condition on " << cap->name() << 
+            ". The current is " << current << "A" << 
+            ", which exceeds the maximum current of " << spec_max_current << "A!";
         #ifdef LOG_CONSOLE
             std::cout << oss.str() << std::endl;
         #else
@@ -56,9 +56,9 @@ double CapacitorMaxViolationCheckDecorator::current(double f, double voltage) co
     if (current * voltage > spec_max_power) {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(0) << 
-            "Power " << current * voltage << 
-            " exceeds maximum power " << spec_max_power <<
-            " of " << cap->name();
+            "Warning: Overpower condition on " << cap->name() << 
+            ". The power is " << current * voltage << 
+            "W, which exceeds the maximum power of " << spec_max_power << "W!";
         #ifdef LOG_CONSOLE
             std::cout << oss.str() << std::endl;
         #else
@@ -77,9 +77,9 @@ double CapacitorMaxViolationCheckDecorator::voltage(double f, double current) co
     if (voltage > spec_max_voltage) {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(0) << 
-            "Voltage " << voltage << 
-            " exceeds maximum voltage " << spec_max_voltage << 
-            " of " << cap->name();
+            "Warning: Overvoltage condition on " << cap->name() << 
+            ". The voltage is " << voltage << 
+            "V, which exceeds the maximum voltage of " << spec_max_voltage << "V!";
         #ifdef LOG_CONSOLE
             std::cout << oss.str() << std::endl;
         #else
@@ -91,9 +91,9 @@ double CapacitorMaxViolationCheckDecorator::voltage(double f, double current) co
     if (current * voltage > spec_max_power) {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(0) << 
-            "Power " << current * voltage << 
-            " exceeds maximum power " << spec_max_power << 
-            " of " << cap->name();
+            "Warning: Overpower condition on " << cap->name() << 
+            ". The power is " << current * voltage << 
+            "W, which exceeds the maximum power of " << spec_max_power << "W!";
         
         #ifdef LOG_CONSOLE
             std::cout << oss.str() << std::endl;
