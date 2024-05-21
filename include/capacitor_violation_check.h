@@ -17,6 +17,9 @@ public:
     virtual const CapacitorSpec& spec() const override;
     
     virtual double allowed_current(double f) const override;
+
+    void initialize() override{}
+
 };
 
 // Decorator for max current violation

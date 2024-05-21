@@ -34,7 +34,7 @@ public:
     virtual double voltage(double f, double current) const = 0;
     virtual const CapacitorSpec& spec() const = 0;
     virtual std::string name() const = 0;
-
+    virtual void initialize() = 0;
     virtual ~CapacitorInterface() {}
 };
 
@@ -44,12 +44,13 @@ protected:
     std::string _cap_name;
 
 public:
-    virtual double xc(double f) const;
-    virtual double current(double f, double voltage) const;
-    virtual double allowed_current(double f) const;
-    virtual double voltage(double f, double current) const;
-    virtual const CapacitorSpec& spec() const;
-    virtual std::string name() const;
+    virtual double xc(double f) const override;
+    virtual double current(double f, double voltage) const override;
+    virtual double allowed_current(double f) const override;
+    virtual double voltage(double f, double current) const override;
+    virtual const CapacitorSpec& spec() const override;
+    virtual std::string name() const override;
+    void initialize() override{};
 };
 
 // Capacitor class definition
@@ -62,21 +63,18 @@ public:
 class GroupCapacitorBase : public CapacitorBase 
 {
 protected:
-    std::vector<CapacitorInterface*> _capacitors;
-
-protected:
     GroupCapacitorBase() = default;
-    GroupCapacitorBase(const std::vector<CapacitorInterface*>& capacitors);
+    // GroupCapacitorBase(const std::array<CapacitorInterface*, 5>& capacitors);
     static const std::string _get_name(const std::string& cap_name, const CapacitorSpec& cap_spec, const std::string& type = "group");
 };
 
 // ParallelCapacitor class definition
 class ParallelCapacitor : public GroupCapacitorBase
 {
+    std::array<CapacitorInterface*, 5> _capacitors;
 public:
     ParallelCapacitor() = default;
-    ParallelCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "");
-    // ParallelCapacitor(const std::array<CapacitorInterface*, 5>& capacitors, const std::string& cap_name = ""){};
+    ParallelCapacitor(const std::array<CapacitorInterface*, 5>& capacitors, const std::string& cap_name = "");
     double xc(double f) const override;
 
     double current(double f, double voltage) const override;
@@ -84,12 +82,16 @@ public:
     double allowed_current(double f) const override;
 
     double voltage(double f, double current) const override;
+
+    void initialize() override;
+
 };
 
 // SeriesCapacitor class definition
 class SeriesCapacitor : public GroupCapacitorBase {
+    std::array<CapacitorInterface*, 2> _capacitors;
 public:
-    SeriesCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name = "");
+    SeriesCapacitor(const std::array<CapacitorInterface*, 2>& capacitors, const std::string& cap_name = "");
 
     double xc(double f) const override;
 
@@ -98,5 +100,7 @@ public:
     double allowed_current(double f) const override;
 
     double voltage(double f, double current) const override;
+
+    void initialize() override;
 };
 

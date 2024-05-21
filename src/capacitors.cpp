@@ -48,11 +48,11 @@ Capacitor::Capacitor(double cap_uF, double vmax, double imax, double power_max, 
 }
 
 
-GroupCapacitorBase::GroupCapacitorBase(const std::vector<CapacitorInterface*>& capacitors) 
-        : _capacitors(capacitors) 
-{
+// GroupCapacitorBase::GroupCapacitorBase(const std::array<CapacitorInterface*, 5>& capacitors) 
+//         : _capacitors(capacitors) 
+// {
 
-}
+// }
 
     // static function returning the string name
 const std::string GroupCapacitorBase::_get_name(const std::string& cap_name, const CapacitorSpec& cap_spec, const std::string& type) 
@@ -71,20 +71,30 @@ const std::string GroupCapacitorBase::_get_name(const std::string& cap_name, con
     }
 }
 
-ParallelCapacitor::ParallelCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name) 
-        : GroupCapacitorBase(capacitors)
+ParallelCapacitor::ParallelCapacitor(const std::array<CapacitorInterface*, 5>& capacitors, const std::string& cap_name) 
+        : _capacitors(capacitors)    
 {
-    double cap_uF = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+    _cap_name = cap_name;
+    this->initialize();
+}
+
+void ParallelCapacitor::initialize() {
+    for(auto cap : _capacitors)
+    {
+        cap->initialize();
+    }
+
+    double cap_uF = std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
                         [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_cap_uF(); });
-    double vmax = (*std::min_element(capacitors.begin(), capacitors.end(),
+    double vmax = (*std::min_element(_capacitors.begin(), _capacitors.end(),
                         [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_v_max() < b->spec().get_v_max(); }))->spec().get_v_max();
-    double imax = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+    double imax = std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
                         [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_i_max(); });
-    double power_max = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+    double power_max = std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
                         [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); });
 
     _spec = CapacitorSpec(cap_uF, vmax, imax, power_max);
-    _cap_name = _get_name(cap_name, _spec, "parallel group");
+    _cap_name = _get_name(_cap_name, _spec, "parallel group");
 }
 
 double ParallelCapacitor::xc(double f) const {
@@ -112,20 +122,29 @@ double ParallelCapacitor::voltage(double f, double current) const {
     return current * xc(f);
 }
 
-SeriesCapacitor::SeriesCapacitor(const std::vector<CapacitorInterface*>& capacitors, const std::string& cap_name)
-    : GroupCapacitorBase(capacitors) 
+SeriesCapacitor::SeriesCapacitor(const std::array<CapacitorInterface*, 2>& capacitors, const std::string& cap_name)
+        : _capacitors(capacitors)    
 {
-    double cap_uF = 1.0 / std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+    _cap_name = cap_name;
+    this->initialize();
+}
+
+void SeriesCapacitor::initialize() {
+    for(auto cap : _capacitors)
+    {
+        cap->initialize();
+    }
+    double cap_uF = 1.0 / std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
                         [](double sum, CapacitorInterface* cap) { return sum + 1.0 / cap->spec().get_cap_uF(); });
-    double vmax = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+    double vmax = std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
                         [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_v_max(); });
-    double imax = (*std::min_element(capacitors.begin(), capacitors.end(), 
+    double imax = (*std::min_element(_capacitors.begin(), _capacitors.end(), 
                         [](CapacitorInterface* a, CapacitorInterface* b) { return a->spec().get_i_max() < b->spec().get_i_max(); }))->spec().get_i_max();
-    double power_max = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+    double power_max = std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
                         [](double sum, CapacitorInterface* cap) { return sum + cap->spec().get_power_max(); });
 
     _spec = CapacitorSpec(cap_uF, vmax, imax, power_max);
-    _cap_name = _get_name(cap_name, _spec, "serial group");
+    _cap_name = _get_name(_cap_name, _spec, "serial group");
 }
 
 double SeriesCapacitor::xc(double f) const {
