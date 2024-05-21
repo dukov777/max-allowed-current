@@ -32,15 +32,18 @@ FetchContent_MakeAvailable(googletest)
 set(SOURCES
     capacitors.cpp  # Assuming your class implementations are in this file
     capacitor_tank.cpp
-    
-    tests.cpp       # The file containing your test cases
-    test_capacitor_tank.cpp
+    capacitor_violation_check.cpp
 )
 
-set(SOURCES2
-    capacitors.cpp  # Assuming your class implementations are in this file
-    capacitor_tank.cpp
-    main.cpp
+set(TEST_SOURCES
+  ${SOURCES}
+  tests.cpp       # The file containing your test cases
+  test_capacitor_tank.cpp
+)
+
+set(APP_SOURCES
+  ${SOURCES}
+  main.cpp
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/argparse/include/)
@@ -55,12 +58,12 @@ enable_testing()
 
 add_executable(
   calculator
-  ${SOURCES2}
+  ${APP_SOURCES}
 )
 
 add_executable(
   CapacitorTests
-  ${SOURCES}
+  ${TEST_SOURCES}
 )
 
 target_link_libraries(

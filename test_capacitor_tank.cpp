@@ -1,9 +1,10 @@
 #include <vector>
 #include <stdexcept>
 #include <cmath>
-// #include "capacitors.h"  // Assuming the translated classes are defined in this header file
-#include "capacitor_tank.h"
+
 #include "capacitors.h"
+#include "capacitor_tank.h"
+#include "capacitor_violation_check.h"
 
 
 #include "gtest/gtest.h"

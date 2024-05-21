@@ -8,6 +8,7 @@
 
 #include "capacitors.h"
 #include "capacitor_tank.h"
+#include "capacitor_violation_check.h"
 
 
 using json = nlohmann::json;

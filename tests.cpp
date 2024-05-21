@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cmath>
 #include "capacitors.h"  // Assuming the translated classes are defined in this header file
+#include "capacitor_violation_check.h"
 
 #include "gtest/gtest.h"
 namespace {
