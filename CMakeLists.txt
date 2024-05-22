@@ -44,7 +44,7 @@ set(SOURCES
 set(TEST_SOURCES
   src/capacitors.cpp  # Assuming your class implementations are in this file
   src/capacitor_violation_check.cpp
-  tests/test_static.cpp
+  tests/test_pool.cpp
 )
 
 set(APP_SOURCES
