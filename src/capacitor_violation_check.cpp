@@ -30,6 +30,11 @@ double CapacitorMaxViolationCheckDecoratorBase::allowed_current(double f) const 
     return cap->allowed_current(f);
 }
 
+void CapacitorMaxViolationCheckDecoratorBase::initialize()
+{
+    cap->initialize();
+}
+
 CapacitorMaxViolationCheckDecorator::CapacitorMaxViolationCheckDecorator(CapacitorInterface* cap) 
     : CapacitorMaxViolationCheckDecoratorBase(cap) 
 {

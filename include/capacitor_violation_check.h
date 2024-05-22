@@ -18,7 +18,7 @@ public:
     
     virtual double allowed_current(double f) const override;
 
-    void initialize() override{}
+    void initialize() override;
 
 };
 
