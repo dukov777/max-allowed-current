@@ -8,25 +8,6 @@
 namespace {
 
 
-// class CapacitorInterface {
-// public:
-//     virtual void initialize() = 0;
-// };
-
-// struct Capacitor : public CapacitorInterface{
-//     // Define a trivial default constructor
-//     Capacitor(int i) { }
-//     void initialize() {}
-//     static CapacitorInterface* create(int i);
-// };
-
-// struct ParallelCapacitor : public CapacitorInterface{
-//     // Define a trivial default constructor
-//     ParallelCapacitor() { /* Initialize as needed */ }
-//     void initialize() {}
-//     static CapacitorInterface* create();
-// };
-
 struct Dummmy : public CapacitorInterface{
     // Define a trivial default constructor
     CapacitorSpec _spec;
