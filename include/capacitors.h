@@ -57,6 +57,8 @@ public:
 class Capacitor : public CapacitorBase {
 public:
     Capacitor() = default;
+    // move constructor
+    Capacitor(Capacitor&&) = default;
     Capacitor(double cap_uF, double vmax, double imax, double power_max, std::string cap_name = "");
 };
 
@@ -72,7 +74,11 @@ protected:
 class ParallelCapacitor : public GroupCapacitorBase
 {
     std::array<CapacitorInterface*, 5>* _capacitors;
+    std::array<CapacitorInterface*, 5> capacitors;
 public:
+    ParallelCapacitor() = default;
+    ParallelCapacitor(ParallelCapacitor&&) = default;
+    ParallelCapacitor(const std::string& cap_name, CapacitorInterface* cap1, CapacitorInterface* cap2 = nullptr, CapacitorInterface* cap3 = nullptr, CapacitorInterface* cap4 = nullptr, CapacitorInterface* cap5 = nullptr);
     ParallelCapacitor(std::array<CapacitorInterface*, 5>* capacitors, const std::string& cap_name = "");
     double xc(double f) const override;
 

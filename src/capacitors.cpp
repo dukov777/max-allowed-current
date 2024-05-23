@@ -71,7 +71,13 @@ const std::string GroupCapacitorBase::_get_name(const std::string& cap_name, con
     }
 }
 
-ParallelCapacitor::ParallelCapacitor(std::array<CapacitorInterface*, 5>* capacitors, const std::string& cap_name) 
+ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorInterface *cap1, CapacitorInterface *cap2, CapacitorInterface *cap3, CapacitorInterface *cap4, CapacitorInterface *cap5) 
+    : capacitors({cap1, cap2, cap3, cap4, cap5})
+{
+    _cap_name = cap_name;
+}
+
+ParallelCapacitor::ParallelCapacitor(std::array<CapacitorInterface *, 5> *capacitors, const std::string &cap_name)
 {
     _capacitors = capacitors;
     _cap_name = cap_name;
