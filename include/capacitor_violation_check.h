@@ -12,14 +12,11 @@ public:
 
     virtual double xc(double f) const override;
     
-    virtual std::string name() const override;
+    virtual const std::string name() const override;
     
     virtual const CapacitorSpec& spec() const override;
     
     virtual double allowed_current(double f) const override;
-
-    void initialize() override;
-
 };
 
 // Decorator for max current violation

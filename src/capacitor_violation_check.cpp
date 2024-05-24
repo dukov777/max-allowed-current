@@ -18,7 +18,7 @@ double CapacitorMaxViolationCheckDecoratorBase::xc(double f) const {
     return cap->xc(f);
 }
 
-std::string CapacitorMaxViolationCheckDecoratorBase::name() const {
+const std::string CapacitorMaxViolationCheckDecoratorBase::name() const {
     return cap->name();
 }
 
@@ -28,11 +28,6 @@ const CapacitorSpec& CapacitorMaxViolationCheckDecoratorBase::spec() const {
 
 double CapacitorMaxViolationCheckDecoratorBase::allowed_current(double f) const {
     return cap->allowed_current(f);
-}
-
-void CapacitorMaxViolationCheckDecoratorBase::initialize()
-{
-    cap->initialize();
 }
 
 CapacitorMaxViolationCheckDecorator::CapacitorMaxViolationCheckDecorator(CapacitorInterface* cap) 

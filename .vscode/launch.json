@@ -47,7 +47,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/CapacitorTests",
-      // "args": ["--gtest_filter='*TestSeriesCapacitorsAllowedMaxCurrent'"],
+      "args": ["--gtest_filter='*TestSeriesHack:*test2'"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/",
       "environment": [],
