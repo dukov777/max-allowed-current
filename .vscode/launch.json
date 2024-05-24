@@ -47,7 +47,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/CapacitorTests",
-      "args": ["--gtest_filter='*TestSeriesHack:*test2'"],
+      "args": ["--gtest_filter='*TestSeriesHack:*TesttheThink'"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/",
       "environment": [],

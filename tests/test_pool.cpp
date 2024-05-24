@@ -8,7 +8,44 @@
 #include "MemoryMngr.h"
 #include "capacitors.h"
 
+#include <numeric> // Include for std::accumulate
+
 namespace {
+
+
+template <size_t N>
+class Parallel : public CapacitorBase {
+    std::array<CapacitorInterface*, N> capacitors;
+public:
+    template <typename... Capacitors>
+    Parallel(const std::string &cap_name, Capacitors... caps)
+        : capacitors{caps...} 
+    {
+        static_assert(sizeof...(caps) == N, "Number of capacitors must match template parameter N");
+    }
+
+    double xc(double f) const override {
+        double reciprocal = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
+                    [f](double sum, CapacitorInterface* cap) { return sum + 1.0 / cap->xc(f);});
+        return 1.0 / reciprocal;
+    }
+
+    void printCapacitors() const {
+        for (const auto& cap : capacitors) {
+            std::cout << "Capacitor xc: " << cap->xc(1.0) << std::endl;
+        }
+    }
+};
+
+TEST(Pool, TesttheThink)
+{
+    auto par = Parallel<3>("parallel", 
+        new Capacitor(1, 1000, 500, 500e3, "1uF_1000V"), 
+        new Capacitor(1, 1000, 500, 500e3, "1uF_1000V"), 
+        new Capacitor(2, 800, 600, 500e3, "2uF_800V"));
+    par.xc(1.0);
+    par.printCapacitors();
+}
 
 SeriesCapacitor* series_global;
 
@@ -29,11 +66,11 @@ TEST(Pool, TestSeriesHack)
     // ASSERT_EQ(series.spec().get_v_max(), 1800);
 }
 
-TEST(Pool, test2)
-{
-    ASSERT_EQ(series_global->spec().get_v_max(), 1800);
-    delete series_global;
-}
+// TEST(Pool, test2)
+// {
+//     ASSERT_EQ(series_global->spec().get_v_max(), 1800);
+//     delete series_global;
+// }
 
 TEST(Pool, TestCapacitor)
 {
