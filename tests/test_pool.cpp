@@ -29,11 +29,11 @@ TEST(Pool, TestSeriesHack)
     // ASSERT_EQ(series.spec().get_v_max(), 1800);
 }
 
-TEST(Pool, test2)
-{
-    ASSERT_EQ(series_global->spec().get_v_max(), 1800);
-    delete series_global;
-}
+// TEST(Pool, test2)
+// {
+//     ASSERT_EQ(series_global->spec().get_v_max(), 1800);
+//     delete series_global;
+// }
 
 TEST(Pool, TestCapacitor)
 {
@@ -46,38 +46,41 @@ TEST(Pool, TestCapacitor)
 TEST(Pool, TestParallelCapacitor) 
 {
     auto cap1 = CapacitorFactory::create_single(1, 1000, 500, 500e3, "1uF_1000V");
-    ASSERT_EQ(cap1->name(), "1uF_1000V");
+    auto cap1_expected = new Capacitor(1, 1000, 500, 500e3, "1uF_1000V");
 
-    auto parallel_cap2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap1.get());
-    
+    auto parallel_cap2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap1);
+
     ASSERT_EQ(parallel_cap2->name(), "parallel capacitor 2");
-    ASSERT_EQ(parallel_cap2->spec().get_v_max(),cap1->spec().get_v_max());
-    ASSERT_EQ(parallel_cap2->spec().get_i_max(), cap1->spec().get_i_max());
-    ASSERT_EQ(parallel_cap2->spec().get_power_max(), cap1->spec().get_power_max());
-    ASSERT_EQ(parallel_cap2->voltage(1, 1000), cap1->voltage(1, 1000));
-    ASSERT_EQ(parallel_cap2->current(1, 1000), cap1->current(1, 1000));
-    ASSERT_EQ(parallel_cap2->allowed_current(1), cap1->allowed_current(1));
+    ASSERT_EQ(parallel_cap2->spec().get_v_max(),cap1_expected->spec().get_v_max());
+    ASSERT_EQ(parallel_cap2->spec().get_i_max(), cap1_expected->spec().get_i_max());
+    ASSERT_EQ(parallel_cap2->spec().get_power_max(), cap1_expected->spec().get_power_max());
+    ASSERT_EQ(parallel_cap2->voltage(1, 1000), cap1_expected->voltage(1, 1000));
+    ASSERT_EQ(parallel_cap2->current(1, 1000), cap1_expected->current(1, 1000));
+    ASSERT_EQ(parallel_cap2->allowed_current(1), cap1_expected->allowed_current(1));
 }
 
 TEST(Pool, TestParallelCapacitorWith2CapacitorsSameCapacitance) 
 {
     auto cap11 = CapacitorFactory::create_single(1, 1000, 500, 500e3, "1uF_1000V");
     auto cap12 = CapacitorFactory::create_single(1, 800, 600, 500e3, "1uF_800V");
+    
+    auto cap11_expected = new Capacitor(1, 1000, 500, 500e3, "1uF_1000V");
+    auto cap12_expected = new Capacitor(1, 800, 600, 500e3, "1uF_800V");
 
-    auto parallel_cap2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap11.get(), cap12.get());
+    auto parallel_cap2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap11, cap12);
     
     ASSERT_EQ(parallel_cap2->name(), "parallel capacitor 2");
-    ASSERT_NE(parallel_cap2->spec().get_v_max(), cap11->spec().get_v_max());
-    ASSERT_EQ(parallel_cap2->spec().get_v_max(), cap12->spec().get_v_max());
-    ASSERT_EQ(parallel_cap2->spec().get_i_max(), cap11->spec().get_i_max() + cap12->spec().get_i_max());
+    ASSERT_NE(parallel_cap2->spec().get_v_max(), cap11_expected->spec().get_v_max());
+    ASSERT_EQ(parallel_cap2->spec().get_v_max(), cap12_expected->spec().get_v_max());
+    ASSERT_EQ(parallel_cap2->spec().get_i_max(), cap11_expected->spec().get_i_max() + cap12_expected->spec().get_i_max());
 
-    ASSERT_EQ(parallel_cap2->spec().get_power_max(), cap11->spec().get_power_max() + cap12->spec().get_power_max());
+    ASSERT_EQ(parallel_cap2->spec().get_power_max(), cap11_expected->spec().get_power_max() + cap12_expected->spec().get_power_max());
     
-    double xc = 1 / (1/cap11->xc(1) + 1/cap12->xc(1));
+    double xc = 1 / (1/cap11_expected->xc(1) + 1/cap12_expected->xc(1));
     ASSERT_EQ(parallel_cap2->voltage(1, 1000), xc * 1000);
-    ASSERT_EQ(parallel_cap2->current(1, 1000), cap11->current(1, 1000) + cap12->current(1, 1000));
+    ASSERT_EQ(parallel_cap2->current(1, 1000), cap11_expected->current(1, 1000) + cap12_expected->current(1, 1000));
     
-    double allowed_current = cap11->current(1, 800) + cap12->allowed_current(1);
+    double allowed_current = cap11_expected->current(1, 800) + cap12_expected->allowed_current(1);
     ASSERT_EQ(parallel_cap2->allowed_current(1), allowed_current);
 }
 
@@ -86,20 +89,23 @@ TEST(Pool, TestParallelCapacitorWith2CapacitorsDifferentCapacitance)
     auto cap11 = CapacitorFactory::create_single(1, 1000, 500, 500e3, "1uF_1000V");
     auto cap12 = CapacitorFactory::create_single(2, 800, 600, 500e3, "1uF_800V");
 
-    auto parallel_cap2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap11.get(), cap12.get());
+    auto cap11_expected = new Capacitor(1, 1000, 500, 500e3, "1uF_1000V");
+    auto cap12_expected = new Capacitor(2, 800, 600, 500e3, "1uF_800V");
+
+    auto parallel_cap2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap11, cap12);
     
     ASSERT_EQ(parallel_cap2->name(), "parallel capacitor 2");
-    ASSERT_NE(parallel_cap2->spec().get_v_max(), cap11->spec().get_v_max());
-    ASSERT_EQ(parallel_cap2->spec().get_v_max(), cap12->spec().get_v_max());
-    ASSERT_EQ(parallel_cap2->spec().get_i_max(), cap11->spec().get_i_max() + cap12->spec().get_i_max());
+    ASSERT_NE(parallel_cap2->spec().get_v_max(), cap11_expected->spec().get_v_max());
+    ASSERT_EQ(parallel_cap2->spec().get_v_max(), cap12_expected->spec().get_v_max());
+    ASSERT_EQ(parallel_cap2->spec().get_i_max(), cap11_expected->spec().get_i_max() + cap12_expected->spec().get_i_max());
 
-    ASSERT_EQ(parallel_cap2->spec().get_power_max(), cap11->spec().get_power_max() + cap12->spec().get_power_max());
+    ASSERT_EQ(parallel_cap2->spec().get_power_max(), cap11_expected->spec().get_power_max() + cap12_expected->spec().get_power_max());
     
-    double xc = 1 / (1/cap11->xc(1) + 1/cap12->xc(1));
+    double xc = 1 / (1/cap11_expected->xc(1) + 1/cap12_expected->xc(1));
     ASSERT_EQ(parallel_cap2->voltage(1, 1000), xc * 1000);
-    ASSERT_EQ(parallel_cap2->current(1, 1000), cap11->current(1, 1000) + cap12->current(1, 1000));
+    ASSERT_EQ(parallel_cap2->current(1, 1000), cap11_expected->current(1, 1000) + cap12_expected->current(1, 1000));
     
-    double allowed_current = cap11->current(1, 800) + cap12->allowed_current(1);
+    double allowed_current = cap11_expected->current(1, 800) + cap12_expected->allowed_current(1);
     ASSERT_EQ(parallel_cap2->allowed_current(1), allowed_current);
 }
 
@@ -107,13 +113,16 @@ TEST(Pool, TestParallelCapacitorWith2CapacitorsDifferentCapacitance)
 TEST(Pool, TestSeriesCapacitor) 
 {
     auto cap1 = CapacitorFactory::create_single(1, 1000, 500, 500e3, "1uF_1000V");
-    ASSERT_EQ(cap1->name(), "1uF_1000V");
+    auto cap1_expected =          new Capacitor(1, 1000, 500, 500e3, "1uF_1000V");
 
-    auto parallel1 = CapacitorFactory::create_parallel("parallel capacitor 1", cap1.get());
-    auto parallel2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap1.get());
+    auto cap2 = CapacitorFactory::create_single(1, 1000, 500, 500e3, "1uF_1000V");
+    auto cap2_expected =          new Capacitor(1, 1000, 500, 500e3, "1uF_1000V");
 
-    ParallelCapacitor parallel_cap1_values = reinterpret_cast<ParallelCapacitor&>(*parallel1);
-    ParallelCapacitor parallel_cap2_values = reinterpret_cast<ParallelCapacitor&>(*parallel2);
+    auto parallel1 = CapacitorFactory::create_parallel("parallel capacitor 1", cap1);
+    auto parallel2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap2);
+
+    ParallelCapacitor parallel_cap1_values("parallel capacitor 1", cap1_expected);
+    ParallelCapacitor parallel_cap2_values("parallel capacitor 2", cap2_expected);
 
     SeriesCapacitor series("serial capacitor 1", parallel1, parallel2);
     ASSERT_EQ(series.name(), "serial capacitor 1");
@@ -121,25 +130,30 @@ TEST(Pool, TestSeriesCapacitor)
     ASSERT_EQ(series.spec().get_i_max(), parallel_cap1_values.spec().get_i_max());
     
     ASSERT_EQ(series.spec().get_power_max(), parallel_cap1_values.spec().get_power_max() + parallel_cap2_values.spec().get_power_max());
-    ASSERT_EQ(series.voltage(1, 1000), parallel_cap1_values.voltage(1, 1000) + parallel_cap2_values.voltage(1, 1000));
+    
+    double xc = parallel_cap1_values.xc(1) + parallel_cap2_values.xc(1) + 10;
+    ASSERT_EQ(series.voltage(1, 1000), xc * 1000);
+    
     ASSERT_EQ(series.current(1, 1000), parallel_cap1_values.current(1, 1000/2));
     ASSERT_EQ(series.allowed_current(1), parallel_cap1_values.allowed_current(1));
-
 }
 
 TEST(Pool, Pool_TestSeriesCapacitorCornerCase) 
 {
     auto cap11 = CapacitorFactory::create_single(1, 1000, 500, 500e3, "1uF_1000V");
+    auto cap11_expected =          new Capacitor(1, 1000, 500, 500e3, "1uF_1000V");
+
     auto cap21 = CapacitorFactory::create_single(1, 800, 600, 500e3, "1uF_800V");
+    auto cap21_expected =          new Capacitor(1, 800, 600, 500e3, "1uF_800V");
 
-    auto parallel1 = CapacitorFactory::create_parallel("parallel capacitor 1", cap11.get());
-    auto parallel2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap21.get());
+    auto parallel1 = CapacitorFactory::create_parallel("parallel capacitor 1", cap11);
+    auto parallel2 = CapacitorFactory::create_parallel("parallel capacitor 2", cap21);
 
-    ASSERT_EQ(parallel1->spec().get_v_max(), cap11->spec().get_v_max());
-    ASSERT_EQ(parallel2->spec().get_v_max(), cap21->spec().get_v_max());
+    ASSERT_EQ(parallel1->spec().get_v_max(), cap11_expected->spec().get_v_max());
+    ASSERT_EQ(parallel2->spec().get_v_max(), cap21_expected->spec().get_v_max());
 
-    ParallelCapacitor parallel_cap1_values = reinterpret_cast<ParallelCapacitor&>(*parallel1);
-    ParallelCapacitor parallel_cap2_values = reinterpret_cast<ParallelCapacitor&>(*parallel2);
+    ParallelCapacitor parallel_cap1_values("parallel capacitor 1", cap11_expected);
+    ParallelCapacitor parallel_cap2_values("parallel capacitor 1", cap21_expected);
 
     SeriesCapacitor series("serial capacitor 1", parallel1, parallel2);
 

@@ -32,5 +32,20 @@ public:
 
     static CapacitorPtr
     create_parallel(const std::string& cap_name, CapacitorInterface* cap1, CapacitorInterface* cap2 = nullptr, CapacitorInterface* cap3 = nullptr, CapacitorInterface* cap4 = nullptr, CapacitorInterface* cap5 = nullptr);
+
+    static CapacitorPtr
+    create_parallel(const std::string& cap_name, CapacitorPtr& cap1);
+
+    static CapacitorPtr
+    create_parallel(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2);
+
+    static CapacitorPtr
+    create_parallel(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2, CapacitorPtr& cap3);
+
+    static CapacitorPtr
+    create_parallel(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2, CapacitorPtr& cap3, CapacitorPtr& cap4);
+
+    static CapacitorPtr
+    create_parallel(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2, CapacitorPtr& cap3, CapacitorPtr& cap4, CapacitorPtr& cap5);
 };
 

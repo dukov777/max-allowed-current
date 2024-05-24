@@ -131,3 +131,28 @@ CapacitorFactory::create_parallel(const std::string& cap_name, CapacitorInterfac
 {
     return CapacitorPtr(new ParallelCapacitor(cap_name, cap1, cap2, cap3, cap4, cap5));
 }
+
+CapacitorPtr CapacitorFactory::create_parallel(const std::string &cap_name, CapacitorPtr &cap1)
+{
+    return CapacitorPtr(new ParallelCapacitor(cap_name, cap1));
+}
+
+CapacitorPtr CapacitorFactory::create_parallel(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2)
+{
+    return CapacitorPtr(new ParallelCapacitor(cap_name, cap1, cap2));
+}
+
+CapacitorPtr CapacitorFactory::create_parallel(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3)
+{
+    return CapacitorPtr(new ParallelCapacitor(cap_name, cap1, cap2, cap3));
+}
+
+CapacitorPtr CapacitorFactory::create_parallel(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3, CapacitorPtr &cap4)
+{
+    return CapacitorPtr(new ParallelCapacitor(cap_name, cap1, cap2, cap3, cap4));
+}
+
+CapacitorPtr CapacitorFactory::create_parallel(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3, CapacitorPtr &cap4, CapacitorPtr &cap5)
+{
+    return CapacitorPtr(new ParallelCapacitor(cap_name, cap1, cap2, cap3, cap4, cap5));
+}

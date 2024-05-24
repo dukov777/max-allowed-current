@@ -59,9 +59,73 @@ ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorInter
     double imax = 0;
     double power_max = 0;
     
-    for(auto cap: capacitors)
+    for(auto& cap: capacitors)
     {
         if(cap != nullptr){
+            cap_uF += cap->spec().get_cap_uF();
+            // get the minimum of the maximum voltage
+            vmax = vmax < cap->spec().get_v_max() ? vmax : cap->spec().get_v_max();
+            imax += cap->spec().get_i_max();
+            power_max += cap->spec().get_power_max();
+        }
+    }
+
+    _spec = CapacitorSpec(cap_uF, vmax, imax, power_max);
+}
+
+ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1)
+    : _capacitors({std::move(cap1)}), capacitors({})
+{
+    _initialize(cap_name);
+}
+
+ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2)
+    : _capacitors({std::move(cap1), std::move(cap2)}), capacitors({})
+{
+    _initialize(cap_name);
+}
+
+ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3)
+    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3)}), capacitors({})
+{
+    _initialize(cap_name);
+}
+
+ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3, CapacitorPtr &cap4)
+    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3), std::move(cap4)}), capacitors({})
+{
+    _initialize(cap_name);
+}
+
+ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3, CapacitorPtr &cap4, CapacitorPtr &cap5)
+    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3), std::move(cap4), std::move(cap5)}), capacitors({})
+{
+    _initialize(cap_name);
+}
+
+void ParallelCapacitor::_initialize(const std::string &cap_name)
+{
+    _cap_name = cap_name;
+
+    int index = 0;
+    for(auto &cap : _capacitors)
+    {
+        if (cap != nullptr)
+        {
+            capacitors[index] = cap.get();
+        }
+        index++;
+    }
+
+    double cap_uF = 0;
+    double vmax = std::numeric_limits<double>::infinity();
+    double imax = 0;
+    double power_max = 0;
+
+    for (auto &cap : _capacitors)
+    {
+        if (cap != nullptr)
+        {
             cap_uF += cap->spec().get_cap_uF();
             // get the minimum of the maximum voltage
             vmax = vmax < cap->spec().get_v_max() ? vmax : cap->spec().get_v_max();

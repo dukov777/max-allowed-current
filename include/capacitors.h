@@ -34,13 +34,26 @@ public:
 // ParallelCapacitor class definition
 class ParallelCapacitor : public CapacitorBase
 {
+    std::array<CapacitorPtr, 5> _capacitors;
     std::array<CapacitorInterface*, 5> capacitors;
 public:
     ParallelCapacitor() = default;
     ParallelCapacitor(ParallelCapacitor&&) = default;
-    ParallelCapacitor(ParallelCapacitor&) = default;
+    ParallelCapacitor(ParallelCapacitor& other)
+    {
+        // implement copy constructor
+        ParallelCapacitor(other._cap_name, other.capacitors[0], other.capacitors[1], other.capacitors[2], other.capacitors[3], other.capacitors[4]);
+    }
+
     ParallelCapacitor(const std::string& cap_name, CapacitorInterface* cap1, CapacitorInterface* cap2 = nullptr, CapacitorInterface* cap3 = nullptr, CapacitorInterface* cap4 = nullptr, CapacitorInterface* cap5 = nullptr);
-    
+    ParallelCapacitor(const std::string& cap_name, CapacitorPtr& cap1);
+    ParallelCapacitor(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2);
+    ParallelCapacitor(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2, CapacitorPtr& cap3);
+    ParallelCapacitor(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2, CapacitorPtr& cap3, CapacitorPtr& cap4);
+    ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3, CapacitorPtr &cap4, CapacitorPtr &cap5);
+
+    void _initialize(const std::string &cap_name);
+
     double xc(double f) const override;
 
     double current(double f, double voltage) const override;
