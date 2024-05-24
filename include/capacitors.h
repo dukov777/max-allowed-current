@@ -35,17 +35,12 @@ public:
 class ParallelCapacitor : public CapacitorBase
 {
     std::array<CapacitorPtr, 5> _capacitors;
-    std::array<CapacitorInterface*, 5> capacitors;
 public:
     ParallelCapacitor() = default;
     ParallelCapacitor(ParallelCapacitor&&) = default;
-    ParallelCapacitor(ParallelCapacitor& other)
-    {
-        // implement copy constructor
-        ParallelCapacitor(other._cap_name, other.capacitors[0], other.capacitors[1], other.capacitors[2], other.capacitors[3], other.capacitors[4]);
-    }
+    ParallelCapacitor(const ParallelCapacitor&) = delete;
+    ParallelCapacitor(ParallelCapacitor& other) = delete;
 
-    ParallelCapacitor(const std::string& cap_name, CapacitorInterface* cap1, CapacitorInterface* cap2 = nullptr, CapacitorInterface* cap3 = nullptr, CapacitorInterface* cap4 = nullptr, CapacitorInterface* cap5 = nullptr);
     ParallelCapacitor(const std::string& cap_name, CapacitorPtr& cap1);
     ParallelCapacitor(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2);
     ParallelCapacitor(const std::string& cap_name, CapacitorPtr& cap1, CapacitorPtr& cap2, CapacitorPtr& cap3);

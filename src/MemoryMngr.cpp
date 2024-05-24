@@ -126,12 +126,6 @@ CapacitorFactory::create_single(double cap_uF, double vmax, double imax, double 
     return CapacitorPtr(new Capacitor(cap_uF, vmax, imax, power_max, cap_name));
 }
 
-CapacitorPtr
-CapacitorFactory::create_parallel(const std::string& cap_name, CapacitorInterface* cap1, CapacitorInterface* cap2, CapacitorInterface* cap3, CapacitorInterface* cap4, CapacitorInterface* cap5) 
-{
-    return CapacitorPtr(new ParallelCapacitor(cap_name, cap1, cap2, cap3, cap4, cap5));
-}
-
 CapacitorPtr CapacitorFactory::create_parallel(const std::string &cap_name, CapacitorPtr &cap1)
 {
     return CapacitorPtr(new ParallelCapacitor(cap_name, cap1));

@@ -48,57 +48,32 @@ Capacitor::Capacitor(double cap_uF, double vmax, double imax, double power_max, 
     }
 }
 
-
-ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorInterface *cap1, CapacitorInterface *cap2, CapacitorInterface *cap3, CapacitorInterface *cap4, CapacitorInterface *cap5) 
-    : capacitors({cap1, cap2, cap3, cap4, cap5})
-{
-    _cap_name = cap_name;
-    double cap_uF = 0;
-    // vmax is initialized to infinity
-    double vmax = std::numeric_limits<double>::infinity();
-    double imax = 0;
-    double power_max = 0;
-    
-    for(auto& cap: capacitors)
-    {
-        if(cap != nullptr){
-            cap_uF += cap->spec().get_cap_uF();
-            // get the minimum of the maximum voltage
-            vmax = vmax < cap->spec().get_v_max() ? vmax : cap->spec().get_v_max();
-            imax += cap->spec().get_i_max();
-            power_max += cap->spec().get_power_max();
-        }
-    }
-
-    _spec = CapacitorSpec(cap_uF, vmax, imax, power_max);
-}
-
 ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1)
-    : _capacitors({std::move(cap1)}), capacitors({})
+    : _capacitors({std::move(cap1)})
 {
     _initialize(cap_name);
 }
 
 ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2)
-    : _capacitors({std::move(cap1), std::move(cap2)}), capacitors({})
+    : _capacitors({std::move(cap1), std::move(cap2)})
 {
     _initialize(cap_name);
 }
 
 ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3)
-    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3)}), capacitors({})
+    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3)})
 {
     _initialize(cap_name);
 }
 
 ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3, CapacitorPtr &cap4)
-    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3), std::move(cap4)}), capacitors({})
+    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3), std::move(cap4)})
 {
     _initialize(cap_name);
 }
 
 ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &cap1, CapacitorPtr &cap2, CapacitorPtr &cap3, CapacitorPtr &cap4, CapacitorPtr &cap5)
-    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3), std::move(cap4), std::move(cap5)}), capacitors({})
+    : _capacitors({std::move(cap1), std::move(cap2), std::move(cap3), std::move(cap4), std::move(cap5)})
 {
     _initialize(cap_name);
 }
@@ -106,16 +81,6 @@ ParallelCapacitor::ParallelCapacitor(const std::string &cap_name, CapacitorPtr &
 void ParallelCapacitor::_initialize(const std::string &cap_name)
 {
     _cap_name = cap_name;
-
-    int index = 0;
-    for(auto &cap : _capacitors)
-    {
-        if (cap != nullptr)
-        {
-            capacitors[index] = cap.get();
-        }
-        index++;
-    }
 
     double cap_uF = 0;
     double vmax = std::numeric_limits<double>::infinity();
@@ -138,14 +103,14 @@ void ParallelCapacitor::_initialize(const std::string &cap_name)
 }
 
 double ParallelCapacitor::xc(double f) const {
-    double reciprocal = std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                                        [f](double sum, CapacitorInterface* cap) { return (cap != nullptr) ? sum + 1.0 / cap->xc(f) : sum; });
+    double reciprocal = std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
+                                        [f](double sum, auto& cap) { return (cap != nullptr) ? sum + 1.0 / cap->xc(f) : sum; });
     return 1.0 / reciprocal;
 }
 
 double ParallelCapacitor::current(double f, double voltage) const {
-    return std::accumulate(capacitors.begin(), capacitors.end(), 0.0, 
-                            [f, voltage](double sum, CapacitorInterface* cap) { return (cap != nullptr) ? sum + cap->current(f, voltage) : sum;});
+    return std::accumulate(_capacitors.begin(), _capacitors.end(), 0.0, 
+                            [f, voltage](double sum, auto& cap) { return (cap != nullptr) ? sum + cap->current(f, voltage) : sum;});
 }
 
 double ParallelCapacitor::allowed_current(double f) const {
@@ -155,7 +120,7 @@ double ParallelCapacitor::allowed_current(double f) const {
 double ParallelCapacitor::voltage(double f, double current) const {
     // traverse all capacitors and call the voltage function. 
     // The result is not important here but the side effect is important.
-    for(auto cap : capacitors)
+    for(auto& cap : _capacitors)
     {
         if(cap != nullptr){
             cap->voltage(f, 0.0);

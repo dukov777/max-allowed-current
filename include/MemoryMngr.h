@@ -8,11 +8,6 @@
 
 #include "CapacitorInterface.h"
 
-// template <typename T>
-// class CapacitorDeleter {
-// public:
-//     void operator()(CapacitorInterface* ptr) const;
-// };
 
 class CapacitorDeleter {
 public:
@@ -21,8 +16,6 @@ public:
 
 
 typedef std::unique_ptr<CapacitorInterface, CapacitorDeleter> CapacitorPtr;
-
-// typedef std::unique_ptr<CapacitorInterface> CapacitorPtr;
 
 class CapacitorFactory
 {
